@@ -216,10 +216,10 @@ class PortletsImporterSection(object):
         assignment = assignment.__of__(obj)
 
         # set visibility setting
-        visible = node.getAttribute('visible')
+        visible = node.getAttribute('visible') or 'true'
         if visible:
             settings = IPortletAssignmentSettings(assignment)
-            settings['visible'] = self._convertToBoolean(visible)
+            settings['visible'] = visible.lower() in ('true', 'yes', '1')
 
         # 3. Use an adapter to update the portlet settings
         portlet_interface = getUtility(IPortletTypeInterface, name=type_)
