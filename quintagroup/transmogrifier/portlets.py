@@ -9,9 +9,9 @@ from zope.container.interfaces import INameChooser
 from zope.schema.interfaces import ConstraintNotSatisfied
 from zope.schema.interfaces import ICollection
 
-
 from plone.portlets.interfaces import ILocalPortletAssignable, IPortletManager,\
-    IPortletAssignmentMapping, IPortletAssignment, ILocalPortletAssignmentManager
+    IPortletAssignmentMapping, IPortletAssignment, IPortletAssignmentSettings, \
+    ILocalPortletAssignmentManager
 from plone.portlets.constants import USER_CATEGORY, GROUP_CATEGORY, \
     CONTENT_TYPE_CATEGORY, CONTEXT_CATEGORY
 from plone.app.portlets.interfaces import IPortletTypeInterface
@@ -95,6 +95,11 @@ class PortletsExporterSection(object):
                     child.setAttribute('key', '/'.join(obj.getPhysicalPath()))
                     child.setAttribute('type', type_)
                     child.setAttribute('name', name)
+
+                    # set visibility
+                    settings = IPortletAssignmentSettings(assignment)
+                    visible = settings.get('visible', True)
+                    child.setAttribute('visible', repr(visible))
 
                     assignment = assignment.__of__(mapping)
                     # use existing adapter for exporting a portlet assignment
@@ -209,6 +214,12 @@ class PortletsImporterSection(object):
 
         # aq-wrap it so that complex fields will work
         assignment = assignment.__of__(obj)
+
+        # set visibility setting
+        visible = node.getAttribute('visible')
+        if visible:
+            settings = IPortletAssignmentSettings(assignment)
+            settings['visible'] = self._convertToBoolean(visible)
 
         # 3. Use an adapter to update the portlet settings
         portlet_interface = getUtility(IPortletTypeInterface, name=type_)
